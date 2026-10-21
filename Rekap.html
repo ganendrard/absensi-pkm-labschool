@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Rekap Absen PKM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #12447E; --navy-tua: #0B2D56; --navy-muda: #1E5FA8;
+      --emas: #F2C230; --emas-teks: #8A6708;
+      --teks: #2B2B2B; --abu: #666666; --garis: #E5E5E5; --latar: #F4F6F8;
+
+      /* warna status (semua lolos kontras 4.5:1) */
+      --hadir-bg: #E3F5E8;  --hadir: #14632F;
+      --kuning-bg: #FFF6DC; --kuning: #6B520E;
+      --alpa-bg: #FDE7E9;   --alpa: #8E1D28;
+      --izin-bg: #EEF0FB;   --izin: #3A3F8F;
+      --sakit-bg: #FFF1E6;  --sakit: #8A400A;
+      --dinas-bg: #E6F3F7;  --dinas: #135468;
+      --cuti-bg: #F3EEFA;   --cuti: #563887;
+      --lupa-bg: #EAF1FA;   --lupa: #1A5294;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--latar); color: var(--teks); font-size: 13px; }
+    h1, h2, h3 { margin: 0; }
+    button { font-family: inherit; }
+    :focus-visible { outline: 2px solid var(--navy-muda); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+    /* ---------- Gerbang PIN ---------- */
+    #gerbang { position: fixed; inset: 0; z-index: 100; background: var(--latar);
+               display: flex; align-items: center; justify-content: center; padding: 20px; }
+    #gerbang[hidden] { display: none; }
+    .kotak-pin { background: #fff; border: 1px solid var(--garis); border-radius: 16px;
+                 padding: 30px 26px; width: 100%; max-width: 330px; text-align: center; }
+    .kotak-pin h1 { font-size: 17px; color: var(--navy); }
+    .kotak-pin p { margin: 4px 0 18px; color: var(--abu); font-size: 12px; }
+    .kotak-pin input { width: 100%; padding: 13px; margin-bottom: 12px; text-align: center;
+                       letter-spacing: 6px; font: 600 17px 'Poppins', sans-serif;
+                       border: 2px solid var(--garis); border-radius: 10px; }
+    .kotak-pin input:focus { border-color: var(--navy-muda); outline: none; }
+    #pesanPin { min-height: 18px; margin-top: 10px; color: var(--alpa); font-size: 12px; font-weight: 600; }
+
+    /* ---------- Tombol ---------- */
+    .btn { border: none; border-radius: 9px; padding: 10px 16px; cursor: pointer;
+           font-size: 12.5px; font-weight: 600; min-height: 40px; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn-navy { background: var(--navy); color: #fff; }
+    .btn-navy:hover:not(:disabled) { background: var(--navy-tua); }
+    .btn-putih { background: #fff; color: var(--navy); border: 1.5px solid var(--garis); }
+    .btn-putih:hover:not(:disabled) { border-color: var(--navy-muda); }
+    .btn-hapus { background: #fff; color: var(--alpa); border: 1.5px solid #F3B9BF; }
+    .btn-kecil { min-height: 34px; padding: 7px 12px; font-size: 11.5px; }
+    .kotak-pin .btn { width: 100%; }
+
+    /* ---------- Kerangka ---------- */
+    .topbar { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 1px solid var(--garis);
+              padding: 14px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .topbar h1 { font-size: 16px; color: var(--navy); }
+    .topbar p { margin: 1px 0 0; font-size: 11px; color: var(--abu); }
+    .topbar .btn { margin-left: auto; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 18px 16px 48px; }
+
+    .panel { background: #fff; border: 1px solid var(--garis); border-radius: 12px; margin-bottom: 16px; }
+    .panel-head { padding: 14px 16px; border-bottom: 1px solid var(--garis);
+                  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .panel-head h2 { font-size: 14px; color: var(--navy); font-weight: 600; }
+    .panel-head .kanan { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .panel-body { padding: 16px; }
+
+    select, input[type="date"] { padding: 8px 10px; min-height: 40px; border: 1.5px solid var(--garis);
+                                 border-radius: 8px; font: 12px 'Poppins', sans-serif; background: #fff; color: var(--teks); }
+    select:focus, input[type="date"]:focus { border-color: var(--navy-muda); outline: none; }
+    .sd { font-size: 11.5px; color: var(--abu); }
+    .cek { display: flex; align-items: center; gap: 7px; font-size: 12px; cursor: pointer; }
+    .cek input { width: 18px; height: 18px; accent-color: var(--navy); }
+
+    /* ---------- Ringkasan ---------- */
+    .ringkasan { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    .kartu { background: #fff; border: 1px solid var(--garis); border-radius: 12px; padding: 14px 16px; }
+    .kartu .n { font-size: 24px; font-weight: 700; color: var(--navy); line-height: 1.15; }
+    .kartu .l { font-size: 11.5px; color: var(--abu); margin-top: 2px; }
+    .kartu.merah .n { color: var(--alpa); }
+
+    /* ---------- Tabel ---------- */
+    .gulir { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #FAFAFA; color: var(--navy); font-size: 11px; font-weight: 600; text-align: center;
+         padding: 11px 9px; border-bottom: 1px solid var(--garis); white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: inherit; }
+    th:first-child { background: #FAFAFA; z-index: 1; }
+    td { padding: 10px 9px; border-bottom: 1px solid #F0F0F0; text-align: center; background: #fff; }
+    tr:last-child td { border-bottom: none; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover td, tbody tr.aktif td { background: #F3F7FC; }
+    .nm { font-weight: 600; white-space: nowrap; }
+    .nm small { display: block; font-weight: 400; font-size: 10.5px; color: var(--abu); }
+    .nol { color: #B5B5B5; }
+    .alpa-n { display: inline-block; min-width: 26px; padding: 2px 8px; border-radius: 20px;
+              background: var(--alpa-bg); color: var(--alpa); font-weight: 700; }
+    .persen { min-width: 92px; }
+    .bar { height: 6px; background: #EEE; border-radius: 9px; overflow: hidden; }
+    .bar i { display: block; height: 100%; background: var(--hadir); border-radius: 9px; }
+    .bar.rendah i { background: var(--emas-teks); }
+    .bar.kritis i { background: var(--alpa); }
+    .persen span { display: block; font-size: 11px; font-weight: 600; margin-top: 3px; }
+
+    /* ---------- Pita hari (elemen utama detail) ---------- */
+    .pita { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 6px; margin-bottom: 14px; }
+    .tile { min-height: 46px; border-radius: 9px; border: 1.5px solid transparent;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 10px; line-height: 1.2; padding: 4px 2px; }
+    .tile b { font-size: 14px; }
+    button.tile { cursor: pointer; }
+    button.tile:hover { border-color: currentColor; }
+    .s-lengkap      { background: var(--hadir-bg); color: var(--hadir); }
+    .s-tanpa-pulang, .s-tanpa-datang { background: var(--kuning-bg); color: var(--kuning); }
+    .s-alpa         { background: var(--alpa-bg); color: var(--alpa); }
+    .j-Izin         { background: var(--izin-bg); color: var(--izin); }
+    .j-Sakit        { background: var(--sakit-bg); color: var(--sakit); }
+    .j-Dinas-Luar   { background: var(--dinas-bg); color: var(--dinas); }
+    .j-Cuti         { background: var(--cuti-bg); color: var(--cuti); }
+    .j-Lupa-Absen   { background: var(--lupa-bg); color: var(--lupa); }
+
+    .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11px; color: var(--abu); margin-bottom: 14px; }
+    .legenda span { display: inline-flex; align-items: center; gap: 6px; }
+    .legenda i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+    .daftar { border: 1px solid var(--garis); border-radius: 10px; overflow: hidden; }
+    .baris { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+             padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+    .baris:last-child { border-bottom: none; }
+    .baris.alpa { background: #FFF8F8; }
+    .baris .tgl { font-weight: 600; min-width: 168px; }
+    .baris .info { color: var(--abu); font-size: 11.5px; flex: 1; min-width: 140px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+
+    .kosong { text-align: center; padding: 32px 16px; color: var(--abu); }
+
+    /* ---------- Dialog keterangan ---------- */
+    dialog { border: none; border-radius: 16px; padding: 0; width: min(440px, calc(100% - 28px));
+             box-shadow: 0 24px 60px rgba(11,45,86,.28); color: var(--teks); }
+    dialog::backdrop { background: rgba(11,45,86,.45); }
+    .dlg-isi { padding: 22px 22px 18px; }
+    .dlg-isi h2 { font-size: 16px; color: var(--navy); }
+    .dlg-sub { margin: 4px 0 16px; color: var(--abu); font-size: 12px; line-height: 1.5; }
+    fieldset { border: none; padding: 0; margin: 0 0 12px; }
+    legend { font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 8px; padding: 0; }
+    .pilihan { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pilihan label { display: flex; align-items: center; gap: 8px; padding: 10px 12px; min-height: 44px;
+                     border: 1.5px solid var(--garis); border-radius: 10px; cursor: pointer; font-size: 12.5px; }
+    .pilihan label:has(input:checked) { border-color: var(--navy); background: #F3F7FC; font-weight: 600; }
+    .pilihan input { width: 18px; height: 18px; margin: 0; accent-color: var(--navy); }
+    .aturan { min-height: 36px; margin: 0 0 14px; padding: 9px 11px; border-radius: 8px;
+              background: #F7F9FC; font-size: 11.5px; color: var(--abu); line-height: 1.5; }
+    .dlg-isi label.ttl { display: block; font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+    textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--garis); border-radius: 10px;
+               font: 12.5px 'Poppins', sans-serif; resize: vertical; }
+    textarea:focus { border-color: var(--navy-muda); outline: none; }
+    .dlg-aksi { display: flex; gap: 8px; padding: 14px 22px 20px; flex-wrap: wrap; }
+    .dlg-aksi .kanan { margin-left: auto; display: flex; gap: 8px; }
+
+    /* ---------- Toast ---------- */
+    #toast { position: fixed; left: 50%; top: 74px; transform: translateX(-50%); z-index: 300;
+             width: calc(100% - 32px); max-width: 460px; padding: 13px 16px; border-radius: 12px;
+             font-weight: 600; font-size: 12.5px; box-shadow: 0 10px 30px rgba(16,32,56,.2); display: none; }
+    #toast.ok { display: block; background: var(--hadir-bg); color: var(--hadir); }
+    #toast.no { display: block; background: var(--alpa-bg); color: var(--alpa); }
+
+    @media (max-width: 760px) {
+      .ringkasan { grid-template-columns: repeat(2, 1fr); }
+      .panel-head .kanan { margin-left: 0; width: 100%; }
+      .baris .tgl { min-width: 0; width: 100%; }
+      .pilihan { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============ Gerbang PIN ============ -->
+<div id="gerbang" role="dialog" aria-modal="true" aria-labelledby="judulPin">
+  <div class="kotak-pin">
+    <h1 id="judulPin">Rekap Absen PKM</h1>
+    <p>Masukkan PIN Tata Usaha untuk melanjutkan.</p>
+    <input type="password" id="inputPin" inputmode="numeric" maxlength="8"
+           autocomplete="off" aria-label="PIN Tata Usaha" placeholder="••••••">
+    <button class="btn btn-navy" id="btnMasuk" type="button">Masuk</button>
+    <div id="pesanPin" role="alert"></div>
+  </div>
+</div>
+
+<header class="topbar">
+  <div>
+    <h1>Rekap Absen PKM</h1>
+    <p>SMP Labschool Ciracas, template dengan data dummy</p>
+  </div>
+  <button class="btn btn-putih" id="btnMuat" type="button">Muat ulang</button>
+</header>
+
+<main class="wrap">
+
+  <section class="panel" aria-labelledby="judulPeriode">
+    <div class="panel-head">
+      <h2 id="judulPeriode">Periode</h2>
+      <div class="kanan">
+        <select id="pilihPeriode" aria-label="Pilih periode"></select>
+        <input type="date" id="tglMulai" aria-label="Tanggal mulai">
+        <span class="sd">s/d</span>
+        <input type="date" id="tglSelesai" aria-label="Tanggal selesai">
+        <button class="btn btn-putih" id="btnTerapkan" type="button">Terapkan</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="ringkasan" aria-label="Ringkasan periode">
+    <div class="kartu"><div class="n" id="rkHari">–</div><div class="l">Hari kerja efektif</div></div>
+    <div class="kartu"><div class="n" id="rkRata">–</div><div class="l">Rata-rata kehadiran</div></div>
+    <div class="kartu"><div class="n" id="rkKet">–</div><div class="l">Hari dengan keterangan</div></div>
+    <div class="kartu merah"><div class="n" id="rkAlpa">–</div><div class="l">Hari tanpa keterangan</div></div>
+  </section>
+
+  <section class="panel" aria-labelledby="judulRekap">
+    <div class="panel-head">
+      <h2 id="judulRekap">Rekap per pegawai</h2>
+      <div class="kanan">
+        <label class="cek"><input type="checkbox" id="hanyaAlpa"> Hanya yang punya hari tanpa keterangan</label>
+      </div>
+    </div>
+    <div class="gulir">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Nama</th>
+            <th scope="col">Hadir</th>
+            <th scope="col">Lupa absen</th>
+            <th scope="col">Izin</th>
+            <th scope="col">Sakit</th>
+            <th scope="col">Dinas luar</th>
+            <th scope="col">Cuti</th>
+            <th scope="col" title="Hari kerja tidak hadir tanpa keterangan">Tanpa ket.</th>
+            <th scope="col">Kehadiran</th>
+          </tr>
+        </thead>
+        <tbody id="isiTabel"><tr><td colspan="9" class="kosong">Masukkan PIN untuk memuat data.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="panelDetail" aria-labelledby="judulDetail" hidden>
+    <div class="panel-head">
+      <h2 id="judulDetail">Rincian</h2>
+      <div class="kanan">
+        <button class="btn btn-putih btn-kecil" id="btnTutupDetail" type="button">Tutup rincian</button>
+      </div>
+    </div>
+    <div class="panel-body" id="isiDetail" aria-live="polite"></div>
+  </section>
+
+</main>
+
+<!-- ============ Dialog keterangan ============ -->
+<dialog id="dlgKet" aria-labelledby="dlgJudul" closedby="any">
+  <div class="dlg-isi">
+    <h2 id="dlgJudul">Beri keterangan</h2>
+    <p class="dlg-sub" id="dlgSub"></p>
+
+    <fieldset>
+      <legend>Alasan tidak tercatat hadir</legend>
+      <div class="pilihan" id="dlgPilihan"></div>
+    </fieldset>
+    <p class="aturan" id="dlgAturan">Pilih salah satu alasan di atas.</p>
+
+    <label class="ttl" for="dlgCatatan">Catatan (opsional)</label>
+    <textarea id="dlgCatatan" rows="3" maxlength="200" placeholder="Contoh: ada surat dokter"></textarea>
+  </div>
+  <div class="dlg-aksi">
+    <button class="btn btn-hapus btn-kecil" id="dlgHapus" type="button" hidden>Hapus keterangan</button>
+    <div class="kanan">
+      <button class="btn btn-putih" id="dlgBatal" type="button">Batal</button>
+      <button class="btn btn-navy" id="dlgSimpan" type="button">Simpan keterangan</button>
+    </div>
+  </div>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  /* ================= Konstanta ================= */
+  const JENIS = [
+    { v: 'Izin',       aturan: 'Tidak dihitung sebagai ketidakhadiran. Hari ini dikeluarkan dari perhitungan persentase.' },
+    { v: 'Sakit',      aturan: 'Tidak dihitung sebagai ketidakhadiran. Hari ini dikeluarkan dari perhitungan persentase.' },
+    { v: 'Dinas Luar', aturan: 'Tidak dihitung sebagai ketidakhadiran. Hari ini dikeluarkan dari perhitungan persentase.' },
+    { v: 'Cuti',       aturan: 'Tidak dihitung sebagai ketidakhadiran. Hari ini dikeluarkan dari perhitungan persentase.' },
+    { v: 'Lupa Absen', aturan: 'Dihitung hadir, tetapi tetap tercatat sebagai lupa absen.' }
+  ];
+  const BULAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+  let token = null, rekap = null, detail = null, namaAktif = null, ketAktif = null;
+
+  const $ = id => document.getElementById(id);
+  const aman = t => String(t == null ? '' : t)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const kelasJenis = j => 'j-' + String(j).replace(/\s+/g, '-');
+
+  function toast(teks, jenis) {
+    const el = $('toast');
+    el.className = jenis; el.textContent = teks;
+    clearTimeout(toast.t);
+    toast.t = setTimeout(() => { el.className = ''; }, 4500);
+  }
+
+  function panggil(fn, args, ok, gagal) {
+    google.script.run
+      .withSuccessHandler(ok)
+      .withFailureHandler(err => {
+        const m = (err && err.message) ? err.message : String(err);
+        if (gagal) gagal(m); else toast(m, 'no');
+      })[fn].apply(null, args);
+  }
+
+  /* ================= PIN ================= */
+  function masuk() {
+    const pin = $('inputPin').value.trim();
+    if (!pin) { $('pesanPin').textContent = 'Isi PIN terlebih dahulu.'; return; }
+    $('pesanPin').textContent = 'Memeriksa PIN…';
+    panggil('cekPin', [pin], res => {
+      if (!res || !res.ok) {
+        $('pesanPin').textContent = 'PIN salah. Periksa lalu coba lagi.';
+        $('inputPin').value = ''; $('inputPin').focus();
+        return;
+      }
+      token = res.token;
+      $('gerbang').hidden = true;
+      siapkanPeriode();
+      muatRekap();
+    }, m => { $('pesanPin').textContent = m; });
+  }
+  $('btnMasuk').addEventListener('click', masuk);
+  $('inputPin').addEventListener('keydown', e => { if (e.key === 'Enter') masuk(); });
+  $('inputPin').focus();
+
+  /* ================= Periode 21–20 ================= */
+  const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+  function siapkanPeriode() {
+    const kini = new Date();
+    let bln = kini.getMonth();
+    if (kini.getDate() < 21) bln -= 1;
+    const sel = $('pilihPeriode');
+    sel.innerHTML = '';
+    for (let i = 0; i < 6; i++) {
+      const m = new Date(kini.getFullYear(), bln - i, 21);
+      const s = new Date(kini.getFullYear(), bln - i + 1, 20);
+      const o = document.createElement('option');
+      o.value = iso(m) + '|' + iso(s);
+      o.textContent = (i === 0 ? 'Berjalan: ' : '') + m.getDate() + ' ' + BULAN[m.getMonth()] +
+                      ' – ' + s.getDate() + ' ' + BULAN[s.getMonth()] + ' ' + s.getFullYear();
+      sel.appendChild(o);
+    }
+    salinPeriode();
+  }
+  function salinPeriode() {
+    const [a, b] = $('pilihPeriode').value.split('|');
+    $('tglMulai').value = a; $('tglSelesai').value = b;
+  }
+  $('pilihPeriode').addEventListener('change', () => { salinPeriode(); muatRekap(); });
+  $('btnTerapkan').addEventListener('click', muatRekap);
+  $('btnMuat').addEventListener('click', muatRekap);
+  $('hanyaAlpa').addEventListener('change', gambarTabel);
+
+  /* ================= Rekap ================= */
+  function muatRekap() {
+    if (!token) return;
+    const a = $('tglMulai').value, b = $('tglSelesai').value;
+    if (!a || !b || a > b) { toast('Periksa tanggal mulai dan selesai.', 'no'); return; }
+    $('isiTabel').innerHTML = '<tr><td colspan="9" class="kosong">Menghitung rekap…</td></tr>';
+    panggil('ambilRekap', [a, b, token], res => {
+      rekap = res;
+      gambarRingkasan();
+      gambarTabel();
+      if (namaAktif) muatDetail(namaAktif);
+    }, m => {
+      $('isiTabel').innerHTML = '<tr><td colspan="9" class="kosong">' + aman(m) + '</td></tr>';
+    });
+  }
+
+  function gambarRingkasan() {
+    const b = rekap.baris;
+    const ada = b.filter(x => x.persen !== null);
+    const rata = ada.length ? Math.round(ada.reduce((s, x) => s + x.persen, 0) / ada.length) : null;
+    $('rkHari').textContent = rekap.hariKerja;
+    $('rkRata').textContent = rata === null ? '–' : rata + '%';
+    $('rkKet').textContent = b.reduce((s, x) => s + x.lupa + x.izin + x.sakit + x.dinas + x.cuti, 0);
+    $('rkAlpa').textContent = b.reduce((s, x) => s + x.alpa, 0);
+  }
+
+  function angka(n) { return n ? n : '<span class="nol">0</span>'; }
+
+  function gambarTabel() {
+    if (!rekap) return;
+    let data = rekap.baris.slice();
+    if ($('hanyaAlpa').checked) data = data.filter(x => x.alpa > 0);
+
+    if (!data.length) {
+      $('isiTabel').innerHTML = '<tr><td colspan="9" class="kosong">' +
+        ($('hanyaAlpa').checked ? 'Semua hari kosong sudah diberi keterangan.' : 'Belum ada data pada periode ini.') +
+        '</td></tr>';
+      return;
+    }
+
+    $('isiTabel').innerHTML = data.map(x => {
+      const kls = x.persen === null ? '' : (x.persen >= 80 ? '' : (x.persen >= 60 ? 'rendah' : 'kritis'));
+      return '<tr tabindex="0" data-nama="' + aman(x.nama) + '"' + (x.nama === namaAktif ? ' class="aktif"' : '') + '>' +
+        '<td class="nm">' + aman(x.nama) + '<small>' + aman(x.kelompok) + '</small></td>' +
+        '<td>' + x.hadir + ' / ' + rekap.hariKerja + '</td>' +
+        '<td>' + angka(x.lupa) + '</td><td>' + angka(x.izin) + '</td><td>' + angka(x.sakit) + '</td>' +
+        '<td>' + angka(x.dinas) + '</td><td>' + angka(x.cuti) + '</td>' +
+        '<td>' + (x.alpa ? '<span class="alpa-n">' + x.alpa + '</span>' : angka(0)) + '</td>' +
+        '<td class="persen">' + (x.persen === null ? '–' :
+          '<div class="bar ' + kls + '"><i style="width:' + Math.min(x.persen, 100) + '%"></i></div><span>' + x.persen + '%</span>') +
+        '</td></tr>';
+    }).join('');
+
+    $('isiTabel').querySelectorAll('tr[data-nama]').forEach(tr => {
+      const buka = () => {
+        $('isiTabel').querySelectorAll('tr').forEach(t => t.classList.remove('aktif'));
+        tr.classList.add('aktif');
+        muatDetail(tr.dataset.nama, true);
+      };
+      tr.addEventListener('click', buka);
+      tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); buka(); } });
+    });
+  }
+
+  /* ================= Detail per pegawai ================= */
+  function muatDetail(nama, gulir) {
+    namaAktif = nama;
+    const p = $('panelDetail');
+    p.hidden = false;
+    $('judulDetail').textContent = 'Rincian ' + nama;
+    $('isiDetail').innerHTML = '<div class="kosong">Memuat rincian…</div>';
+    if (gulir) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    panggil('ambilDetail', [nama, $('tglMulai').value, $('tglSelesai').value, token], res => {
+      detail = res; gambarDetail();
+    }, m => { $('isiDetail').innerHTML = '<div class="kosong">' + aman(m) + '</div>'; });
+  }
+
+  $('btnTutupDetail').addEventListener('click', () => {
+    $('panelDetail').hidden = true; namaAktif = null;
+    $('isiTabel').querySelectorAll('tr').forEach(t => t.classList.remove('aktif'));
+  });
+
+  function kelasHari(h) {
+    return h.status === 'keterangan' ? kelasJenis(h.jenis) : 's-' + h.status;
+  }
+  function teksStatus(h) {
+    return {
+      'lengkap': 'Hadir', 'tanpa-pulang': 'Tanpa absen pulang', 'tanpa-datang': 'Tanpa absen datang',
+      'alpa': 'Tanpa keterangan', 'keterangan': h.jenis
+    }[h.status];
+  }
+
+  function gambarDetail() {
+    const hari = detail.hari;
+    if (!hari.length) { $('isiDetail').innerHTML = '<div class="kosong">Belum ada hari kerja pada periode ini.</div>'; return; }
+
+    const naik = hari.filter(h => h.hariKerja).slice().reverse();
+    const alpa = hari.filter(h => h.status === 'alpa').length;
+
+    const pita = naik.map(h => {
+      const p = h.tanggal.split('-');
+      const isi = '<span>' + BULAN[Number(p[1]) - 1] + '</span><b>' + Number(p[2]) + '</b>';
+      const label = h.label + ', ' + teksStatus(h);
+      const bisaKlik = (h.status === 'alpa' || h.status === 'keterangan');
+      return bisaKlik
+        ? '<button type="button" class="tile ' + kelasHari(h) + '" data-tgl="' + h.tanggal + '" aria-label="' + aman(label) + '. Ubah keterangan">' + isi + '</button>'
+        : '<div class="tile ' + kelasHari(h) + '" role="img" aria-label="' + aman(label) + '">' + isi + '</div>';
+    }).join('');
+
+    const legenda = [
+      ['var(--hadir-bg)', 'Hadir'], ['var(--kuning-bg)', 'Absen tidak lengkap'],
+      ['var(--alpa-bg)', 'Tanpa keterangan'], ['var(--izin-bg)', 'Izin'], ['var(--sakit-bg)', 'Sakit'],
+      ['var(--dinas-bg)', 'Dinas luar'], ['var(--cuti-bg)', 'Cuti'], ['var(--lupa-bg)', 'Lupa absen']
+    ].map(l => '<span><i style="background:' + l[0] + '"></i>' + l[1] + '</span>').join('');
+
+    const daftar = hari.map(h => {
+      let info;
+      if (h.status === 'keterangan') info = h.catatan ? aman(h.catatan) : 'Tanpa catatan';
+      else if (h.status === 'alpa')  info = 'Tidak ada absensi dan belum diberi keterangan';
+      else info = 'Datang ' + (h.jamDatang || '–') + ', pulang ' + (h.jamPulang || '–') +
+                  (h.hariKerja ? '' : ' (di luar hari kerja)');
+
+      let aksi = '';
+      if (h.status === 'alpa')       aksi = '<button class="btn btn-navy btn-kecil" type="button" data-tgl="' + h.tanggal + '">Beri keterangan</button>';
+      if (h.status === 'keterangan') aksi = '<button class="btn btn-putih btn-kecil" type="button" data-tgl="' + h.tanggal + '">Ubah</button>';
+
+      return '<div class="baris' + (h.status === 'alpa' ? ' alpa' : '') + '">' +
+        '<span class="tgl">' + aman(h.label) + '</span>' +
+        '<span class="info">' + info + '</span>' +
+        '<span class="badge ' + kelasHari(h) + '">' + aman(teksStatus(h)) + '</span>' + aksi +
+      '</div>';
+    }).join('');
+
+    $('isiDetail').innerHTML =
+      '<p style="margin:0 0 12px;color:var(--abu);font-size:12px;">' +
+        (alpa ? alpa + ' hari kerja belum diberi keterangan. Tekan kotak merah atau tombol di daftar untuk melengkapinya.'
+              : 'Semua hari kerja sudah tercatat hadir atau sudah diberi keterangan.') + '</p>' +
+      '<div class="pita" role="list" aria-label="Hari kerja dalam periode">' + pita + '</div>' +
+      '<div class="legenda">' + legenda + '</div>' +
+      '<div class="daftar">' + daftar + '</div>';
+
+    $('isiDetail').querySelectorAll('[data-tgl]').forEach(b =>
+      b.addEventListener('click', () => bukaDialog(b.dataset.tgl)));
+  }
+
+  /* ================= Dialog keterangan ================= */
+  const dlg = $('dlgKet');
+
+  $('dlgPilihan').innerHTML = JENIS.map(j =>
+    '<label><input type="radio" name="jenis" value="' + j.v + '"> ' + j.v + '</label>').join('');
+  $('dlgPilihan').addEventListener('change', () => {
+    const v = (document.querySelector('input[name="jenis"]:checked') || {}).value;
+    const j = JENIS.find(x => x.v === v);
+    $('dlgAturan').textContent = j ? j.aturan : 'Pilih salah satu alasan di atas.';
+  });
+
+  function bukaDialog(tgl) {
+    const h = detail.hari.find(x => x.tanggal === tgl);
+    if (!h) return;
+    ketAktif = h;
+    $('dlgJudul').textContent = h.status === 'keterangan' ? 'Ubah keterangan' : 'Beri keterangan';
+    $('dlgSub').textContent = detail.nama + ', ' + h.label;
+    document.querySelectorAll('input[name="jenis"]').forEach(r => { r.checked = (r.value === h.jenis); });
+    $('dlgPilihan').dispatchEvent(new Event('change'));
+    $('dlgCatatan').value = h.catatan || '';
+    $('dlgHapus').hidden = (h.status !== 'keterangan');
+    dlg.showModal();
+  }
+
+  function tutupDialog() { if (dlg.open) dlg.close(); }
+  $('dlgBatal').addEventListener('click', tutupDialog);
+  // Cadangan untuk peramban yang belum mendukung closedby="any"
+  dlg.addEventListener('click', e => { if (e.target === dlg) tutupDialog(); });
+
+  function kunciDialog(sibuk) {
+    ['dlgSimpan', 'dlgBatal', 'dlgHapus'].forEach(id => { $(id).disabled = sibuk; });
+    $('dlgSimpan').textContent = sibuk ? 'Menyimpan…' : 'Simpan keterangan';
+  }
+
+  $('dlgSimpan').addEventListener('click', () => {
+    const r = document.querySelector('input[name="jenis"]:checked');
+    if (!r) { $('dlgAturan').textContent = 'Pilih alasan terlebih dahulu.'; return; }
+    kunciDialog(true);
+    panggil('simpanKeterangan', [token, {
+      nama: detail.nama, tanggal: ketAktif.tanggal, jenis: r.value, catatan: $('dlgCatatan').value
+    }], res => {
+      kunciDialog(false); tutupDialog();
+      toast(res.pesan, 'ok');
+      muatRekap();             // memperbarui tabel dan rincian sekaligus
+    }, m => { kunciDialog(false); toast(m, 'no'); });
+  });
+
+  $('dlgHapus').addEventListener('click', () => {
+    if (!confirm('Hapus keterangan ' + ketAktif.label + '? Hari ini akan kembali tercatat tanpa keterangan.')) return;
+    kunciDialog(true);
+    panggil('hapusKeterangan', [token, detail.nama, ketAktif.tanggal], res => {
+      kunciDialog(false); tutupDialog();
+      toast(res.pesan, 'ok');
+      muatRekap();
+    }, m => { kunciDialog(false); toast(m, 'no'); });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Absen PKM - SMP Labschool Ciracas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       GANTI 2 KODE DI BAWAH INI DENGAN ID FILE GOOGLE DRIVE ANDA
+       ============================================================ */
+    :root { /* Ganti dengan ID file Google Drive sesuai keinginan Anda */
+      --bg-foto:  url('https://via.placeholder.com/1920x1080?text=GANTI+INI+DENGAN+FOTO+LATAR+ANDA');
+      --logo-url: 'https://via.placeholder.com/240x80?text=GANTI+INI+DENGAN+LOGO+ANDA';
+
+      /* Palet warna Labschool Ciracas */
+      --navy:       #12447E;
+      --navy-tua:   #0B2D56;
+      --navy-muda:  #1E5FA8;
+      --emas:       #F2C230;
+      --emas-tua:   #8A6708;   /* digelapkan: kontras 5.2:1 di atas putih */
+      --abu:        #666666;
+      --abu-terang: #E5E5E5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 20px;
+      min-height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      background-image: var(--bg-foto);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-color: var(--navy);
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, rgba(11,45,86,0.82) 0%, rgba(18,68,126,0.75) 50%, rgba(30,95,168,0.70) 100%);
+      z-index: 0;
+    }
+
+    .card {
+      position: relative; z-index: 1;
+      background: #ffffff;
+      width: 100%; max-width: 400px;
+      border-radius: 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+
+    /* ---------- HEADER ---------- */
+    .header {
+      background: #ffffff;
+      padding: 24px 25px 6px;
+      text-align: center;
+    }
+    .logo-wrap { margin: 0 auto 14px; max-width: 240px; }
+    .logo-wrap img { width: 100%; height: auto; display: block; }
+    .header h2 { margin: 0; color: var(--navy); font-size: 19px; font-weight: 700; letter-spacing: 0.3px; }
+    .header .sub { margin: 5px 0 0; color: var(--emas-tua); font-size: 10.5px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
+    .header .moto { margin: 5px 0 0; color: #6E6E6E; font-size: 11px; }
+
+    .isi { padding: 22px 25px 25px; background: #ffffff; }
+
+    /* ---------- FOTO ---------- */
+    .foto-box {
+      width: 100%; border-radius: 14px; overflow: hidden;
+      border: 3px dashed var(--abu-terang); margin-bottom: 14px;
+      background-color: #FAFAFA; position: relative;
+      min-height: 175px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .foto-box.terisi { border-style: solid; border-color: var(--emas); background-color: #000; }
+    #previewFoto { width: 100%; display: none; }
+    #placeholderFoto { color: var(--abu); font-size: 13px; padding: 20px; line-height: 1.7; }
+    #placeholderFoto small { color: #6E6E6E; font-size: 11px; }
+
+    /* ---------- STATUS ---------- */
+    .status-bar { display: flex; gap: 8px; margin-bottom: 16px; font-size: 11px; }
+    .status-item {
+      flex: 1; padding: 9px 4px; border-radius: 8px;
+      background: var(--abu-terang); color: var(--abu); font-weight: 600;
+      text-align: center; transition: 0.3s;
+    }
+    .status-item.ok   { background: #E3F5E8; color: #1B7A3D; }
+    .status-item.wait { background: #FFF6DC; color: #8A6A12; }
+    .status-item.err  { background: #FDE7E9; color: #A32330; }
+
+    /* ---------- INPUT ---------- */
+    .input-grup { text-align: left; margin-bottom: 14px; }
+    .input-grup label {
+      display: block; font-size: 12px; color: var(--navy);
+      font-weight: 600; margin-bottom: 6px; letter-spacing: 0.2px;
+    }
+    select {
+      width: 100%; padding: 12px;
+      border: 2px solid var(--abu-terang); border-radius: 10px;
+      font-family: 'Poppins', sans-serif; font-size: 14px;
+      color: #333333; outline: none; transition: 0.25s;
+      background-color: #fff;
+    }
+    select:focus { border-color: var(--navy-muda); box-shadow: 0 0 0 3px rgba(30,95,168,0.12); }
+
+    /* ---------- TOMBOL PEMILIH NAMA ---------- */
+    .pilih-nama {
+      width: 100%; padding: 12px 14px;
+      border: 2px solid var(--abu-terang); border-radius: 10px;
+      background: #fff; text-align: left; cursor: pointer;
+      font-family: 'Poppins', sans-serif; font-size: 14px; color: #999;
+      display: flex; align-items: center; gap: 10px;
+      transition: 0.25s;
+    }
+    .pilih-nama:active { transform: scale(0.99); }
+    .pilih-nama.terisi { color: #333; border-color: var(--navy-muda); }
+    .pilih-nama .nm { flex: 1; font-weight: 500; line-height: 1.35; }
+    .pilih-nama .nm small { display: block; font-size: 10.5px; color: var(--abu); font-weight: 400; margin-top: 1px; }
+    .pilih-nama .ikon { color: var(--navy-muda); font-size: 12px; }
+
+    /* ---------- LAYAR PEMILIH ---------- */
+    #layarNama {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: #fff; flex-direction: column;
+    }
+    #layarNama.buka { display: flex; }
+    .ln-head {
+      padding: 14px 16px; border-bottom: 1px solid var(--abu-terang);
+      background: #fff;
+    }
+    .ln-baris { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+    .ln-baris h3 { margin: 0; font-size: 15px; color: var(--navy); font-weight: 700; }
+    .ln-tutup {
+      margin-left: auto; border: none; background: #F2F2F2; color: #555;
+      width: 32px; height: 32px; border-radius: 50%; font-size: 19px;
+      cursor: pointer; line-height: 1; font-family: 'Poppins', sans-serif;
+    }
+    .ln-cari {
+      width: 100%; padding: 12px 14px;
+      border: 2px solid var(--abu-terang); border-radius: 10px;
+      font-family: 'Poppins', sans-serif; font-size: 15px;
+      outline: none; transition: 0.25s;
+    }
+    .ln-cari:focus { border-color: var(--navy-muda); }
+    .ln-isi { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 30px; }
+
+    .ln-grup {
+      padding: 9px 16px 6px; font-size: 10.5px; font-weight: 700;
+      color: var(--navy); background: #F7F9FC;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      position: sticky; top: 0;
+    }
+    .ln-item {
+      padding: 12px 16px; border-bottom: 1px solid #F2F2F2;
+      cursor: pointer; display: flex; align-items: center; gap: 11px;
+    }
+    .ln-item:active { background: #F0F4FA; }
+    .ln-item .inisial {
+      width: 34px; height: 34px; min-width: 34px; border-radius: 50%;
+      background: var(--navy); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+    }
+    /* Warna avatar per bidang (lihat WARNA_BIDANG di script) */
+    .ln-item.warna-emas .inisial { background: var(--emas-tua); }
+    .ln-item.warna-tua  .inisial { background: var(--navy-tua); }
+    .ln-item .teks { flex: 1; min-width: 0; }
+    .ln-item .teks b { display: block; font-size: 13.5px; font-weight: 600; color: #2B2B2B; line-height: 1.3; }
+    .ln-item .teks span { font-size: 11px; color: var(--abu); }
+    .ln-item.terakhir { background: #FFFBEE; }
+    .ln-item .tag {
+      font-size: 9.5px; background: var(--emas); color: var(--navy-tua);
+      padding: 2px 7px; border-radius: 10px; font-weight: 700;
+    }
+    .ln-kosong { text-align: center; padding: 40px 20px; color: var(--abu); font-size: 13px; }
+
+    /* ---------- TOMBOL ---------- */
+    .btn {
+      color: #fff; border: none; padding: 14px; width: 100%;
+      border-radius: 10px; font-size: 14px; font-weight: 600;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer; transition: all 0.25s ease;
+      margin-bottom: 10px; letter-spacing: 0.2px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { background: #C9C9C9 !important; box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn-kamera {
+      background: linear-gradient(135deg, #D9A612 0%, #F2C230 100%);
+      color: var(--navy-tua); font-weight: 700;
+      box-shadow: 0 4px 14px rgba(217,166,18,0.4);
+    }
+    .btn-absen {
+      background: linear-gradient(135deg, var(--navy-tua) 0%, var(--navy-muda) 100%);
+      box-shadow: 0 4px 14px rgba(18,68,126,0.4);
+      margin-bottom: 0;
+    }
+
+    /* ---------- STATUS SENIN–JUMAT ---------- */
+    .minggu {
+      display: none; margin-bottom: 16px;
+      border: 1px solid var(--abu-terang); border-radius: 12px;
+      padding: 12px 12px 10px; background: #FCFCFD;
+    }
+    .minggu.tampil { display: block; }
+    .minggu-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .minggu-head .ttl {
+      font-size: 11px; font-weight: 600; color: var(--navy);
+      letter-spacing: .3px; flex: 1; line-height: 1.35;
+    }
+    .minggu-head .ttl small {
+      display: block; font-weight: 400; color: var(--abu);
+      font-size: 10.5px; letter-spacing: 0;
+    }
+    .nav-mg {
+      width: 34px; height: 34px; min-width: 34px;
+      border: 1px solid var(--abu-terang); background: #fff;
+      border-radius: 9px; cursor: pointer; color: var(--navy);
+      font-size: 15px; line-height: 1; font-family: 'Poppins', sans-serif;
+    }
+    .nav-mg:disabled { opacity: .35; cursor: not-allowed; }
+    .nav-mg:active:not(:disabled) { background: #EAF1FA; }
+    .nav-mg:focus-visible { outline: 2px solid var(--navy-muda); outline-offset: 2px; }
+
+    .chip-hari { display: flex; gap: 6px; }
+    .ch {
+      flex: 1; min-width: 0; min-height: 56px;
+      border-radius: 10px; padding: 7px 2px 6px;
+      text-align: center; border: 1.5px solid transparent;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: #F2F2F2;
+    }
+    .ch .h { font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+    .ch .t { font-size: 13px; font-weight: 600; line-height: 1; }
+    .ch .ikon { font-size: 11px; line-height: 1; }
+
+    .ch.lengkap      { background: #E3F5E8; color: #14632F; }
+    .ch.tanpa-pulang { background: #FFF6DC; color: #6B520E; }
+    .ch.tanpa-datang { background: #FFF6DC; color: #6B520E; }
+    .ch.kosong       { background: #FDE7E9; color: #8E1D28; }
+    .ch.sepi         { background: #F2F2F2; color: #666666; }
+    .ch.nanti        { background: #FAFAFA; color: #707070; }
+    .ch.ini          { border-color: var(--navy); box-shadow: 0 0 0 2px rgba(18,68,126,.12); }
+
+    .mg-ket { margin-top: 9px; font-size: 10.5px; color: var(--abu); line-height: 1.6; text-align: center; }
+    .mg-ket b { color: #8E1D28; }
+    .mg-memuat { text-align: center; padding: 16px 8px; font-size: 11.5px; color: var(--abu); }
+
+    /* ---------- PESAN ---------- */
+    #pesan {
+      margin-top: 14px; font-size: 12.5px; font-weight: 600;
+      padding: 12px; border-radius: 9px; display: none; line-height: 1.55;
+      text-align: center;
+    }
+    .sukses { background-color: #E3F5E8; color: #14632F; display: block !important; }
+    .gagal  { background-color: #FDE7E9; color: #8E1D28; display: block !important; }
+    .proses { background-color: #FFF6DC; color: #7A5D0F; display: block !important; }
+
+    .footer {
+      text-align: center; margin-top: 16px;
+      font-size: 10.5px; color: #6E6E6E;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="header">
+    <div class="logo-wrap">
+      <img id="logoSekolah" alt="SMP Labschool Ciracas">
+    </div>
+    <h2>Absen PKM</h2>
+    <p class="sub">SMP Labschool Ciracas</p>
+    <p class="moto">Iman &middot; Ilmu &middot; Amal</p>
+  </div>
+
+  <div class="isi">
+
+    <div class="foto-box" id="fotoBox">
+      <img id="previewFoto" alt="Preview foto absen">
+      <div id="placeholderFoto">
+        📷<br>Belum ada foto<br>
+        <small>Tekan tombol "Buka Kamera" di bawah</small>
+      </div>
+    </div>
+
+    <input type="file" id="inputFoto" accept="image/*" capture="user" style="display:none;">
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- Status absen Senin–Jumat -->
+    <section class="minggu" id="panelMinggu" aria-labelledby="judulMinggu">
+      <div class="minggu-head">
+        <button type="button" class="nav-mg" id="mgPrev" aria-label="Lihat minggu sebelumnya">&#8249;</button>
+        <div class="ttl" id="judulMinggu">Status Absen Minggu Ini<small id="mgLabel">&nbsp;</small></div>
+        <button type="button" class="nav-mg" id="mgNext" aria-label="Lihat minggu berikutnya" disabled>&#8250;</button>
+      </div>
+      <div class="chip-hari" id="chipHari" role="list"></div>
+      <div class="mg-ket" id="mgKet" aria-live="polite"></div>
+    </section>
+
+    <div class="status-bar">
+      <div class="status-item wait" id="statFoto" role="status">📷 Foto</div>
+      <div class="status-item wait" id="statGps" role="status" tabindex="0" aria-label="Status GPS. Sentuh untuk mencari ulang sinyal">📍 GPS</div>
+    </div>
+
+    <div class="input-grup">
+      <label>Pilih Nama</label>
+      <button type="button" class="pilih-nama" id="tombolNama" aria-haspopup="dialog" aria-expanded="false">
+        <span class="nm" id="labelNama">Sentuh untuk mencari nama…</span>
+        <span class="ikon">🔍</span>
+      </button>
+      <input type="hidden" id="namaGuru" value="">
+    </div>
+
+    <div class="input-grup">
+      <label>Status Kehadiran</label>
+      <select id="statusAbsen">
+        <option value="Hadir Datang">Hadir Datang (Masuk)</option>
+        <option value="Hadir Pulang">Hadir Pulang (Selesai)</option>
+      </select>
+    </div>
+
+    <button class="btn btn-kamera" id="btnKamera" type="button">📷 Buka Kamera</button>
+    <button class="btn btn-absen" id="btnAbsen" type="button" disabled>📤 Kirim Absen</button>
+
+    <div id="pesan" role="alert" aria-live="assertive"></div>
+
+    <div class="footer">Absen PKM &middot; SMP Labschool Ciracas</div>
+  </div>
+</div>
+
+<!-- ============ LAYAR PEMILIH NAMA ============ -->
+<div id="layarNama" role="dialog" aria-modal="true" aria-label="Cari nama pegawai">
+  <div class="ln-head">
+    <div class="ln-baris">
+      <h3>Cari Nama Anda</h3>
+      <button class="ln-tutup" id="tutupNama" type="button" aria-label="Tutup">&times;</button>
+    </div>
+    <input type="text" class="ln-cari" id="cariNama"
+           placeholder="Ketik nama, contoh: chris" autocomplete="off"
+           autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+  <div class="ln-isi" id="daftarNama" role="listbox" aria-label="Daftar nama pegawai"></div>
+</div>
+
+<script>
+  // ---- Logo ----
+  const logoUrl = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--logo-url').trim().replace(/^['"]|['"]$/g, '');
+  const logoEl = document.getElementById('logoSekolah');
+  if (logoUrl.indexOf('FILE_ID_LOGO') === -1) {
+    logoEl.src = logoUrl;
+  } else {
+    logoEl.parentElement.innerHTML =
+      '<div style="color:#12447E;font-weight:700;font-size:15px;line-height:1.25;">SMP LABSCHOOL<br>CIRACAS</div>';
+  }
+
+  /* ============================================================
+     DAFTAR NAMA — tambah/kurangi di sini bila ada perubahan pegawai
+       n = nama (harus SAMA PERSIS dengan DAFTAR_PEGAWAI di Code.gs)
+       k = kelompok
+       j = bidang (dipakai untuk pengelompokan di layar pencarian)
+     ============================================================ */
+  const PEGAWAI = [
+    // Data dummy — ganti dengan data asli saat digabung
+    { n:"Mahasiswa 1",     k:"PKM", j:"PTIK" },
+    { n:"Mahasiswa 2",     k:"PKM", j:"PTIK" },
+    { n:"Mahasiswa 3",     k:"PKM", j:"PTIK" },
+    { n:"Mahasiswa 4",     k:"PKM", j:"PTIK" },
+    { n:"Mahasiswa 5",     k:"PKM", j:"SR" },
+    { n:"Mahasiswa 6",     k:"PKM", j:"SR" },
+    { n:"Mahasiswa 7",     k:"PKM", j:"SR" },
+    { n:"Mahasiswa 8",     k:"PKM", j:"BK" },
+    { n:"Mahasiswa 9",     k:"PKM", j:"BK" },
+    { n:"Mahasiswa 10",    k:"PKM", j:"BK" }
+  ];
+
+  // Warna avatar per bidang: '' = biru navy, 'warna-emas', 'warna-tua'.
+  // Bidang yang tidak tercantum otomatis memakai biru navy.
+  const WARNA_BIDANG = { PTIK: '', BK: 'warna-emas', SR: 'warna-tua' };
+
+  const inputFoto   = document.getElementById('inputFoto');
+  const previewFoto = document.getElementById('previewFoto');
+  const placeholder = document.getElementById('placeholderFoto');
+  const fotoBox     = document.getElementById('fotoBox');
+  const canvas      = document.getElementById('canvas');
+  const pesan       = document.getElementById('pesan');
+  const btnKamera   = document.getElementById('btnKamera');
+  const btnAbsen    = document.getElementById('btnAbsen');
+  const statFoto    = document.getElementById('statFoto');
+  const statGps     = document.getElementById('statGps');
+
+  const tombolNama  = document.getElementById('tombolNama');
+  const labelNama   = document.getElementById('labelNama');
+  const inputNama   = document.getElementById('namaGuru');
+  const layarNama   = document.getElementById('layarNama');
+  const cariNama    = document.getElementById('cariNama');
+  const daftarNama  = document.getElementById('daftarNama');
+
+  let userLat = null, userLng = null;
+  let imageData = null;
+  let waktuFoto = null;
+  let waktuJepret = null;
+
+  const BATAS_DETIK = 180;
+
+  /* ================= PEMILIH NAMA ================= */
+
+  function ambilTerakhir() {
+    try { return localStorage.getItem('absen_nama_terakhir') || ''; } catch (e) { return ''; }
+  }
+  function simpanTerakhir(n) {
+    try { localStorage.setItem('absen_nama_terakhir', n); } catch (e) {}
+  }
+
+  function inisial(nama) {
+    const kata = nama.replace(/,.*$/, '').trim().split(/\s+/);
+    if (kata.length === 1) return kata[0].substr(0, 2).toUpperCase();
+    return (kata[0][0] + kata[1][0]).toUpperCase();
+  }
+
+  function normal(t) {
+    return String(t).toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  function itemHtml(p, tandai) {
+    const warna = WARNA_BIDANG[p.j] || '';
+    return '<div class="ln-item ' + warna + (tandai ? ' terakhir' : '') +
+           '" role="option" tabindex="0" data-nama="' + p.n.replace(/"/g, '&quot;') + '">' +
+             '<span class="inisial">' + inisial(p.n) + '</span>' +
+             '<span class="teks"><b>' + p.n + '</b><span>' + p.j + '</span></span>' +
+             (tandai ? '<span class="tag">ANDA?</span>' : '') +
+           '</div>';
+  }
+
+  function gambarDaftar(kunci) {
+    const q = normal(kunci || '');
+    const terakhir = ambilTerakhir();
+    let html = '';
+
+    if (!q && terakhir) {
+      const p = PEGAWAI.find(x => x.n === terakhir);
+      if (p) {
+        html += '<div class="ln-grup">Terakhir Dipakai di HP Ini</div>';
+        html += itemHtml(p, true);
+      }
+    }
+
+    const cocok = PEGAWAI.filter(p =>
+      !q || normal(p.n).indexOf(q) !== -1 || normal(p.j).indexOf(q) !== -1);
+
+    if (!cocok.length) {
+      daftarNama.innerHTML =
+        '<div class="ln-kosong">Nama tidak ditemukan.<br><small>Coba ketik lebih sedikit huruf.</small></div>';
+      return;
+    }
+
+    // Kelompokkan otomatis berdasarkan bidang (j), urut sesuai kemunculan di data
+    const daftarGrup = [];
+    cocok.forEach(p => { if (daftarGrup.indexOf(p.j) === -1) daftarGrup.push(p.j); });
+
+    daftarGrup.forEach(grup => {
+      const isi = cocok.filter(p => p.j === grup);
+      html += '<div class="ln-grup">' + grup + ' (' + isi.length + ')</div>';
+      isi.forEach(p => { html += itemHtml(p, false); });
+    });
+
+    daftarNama.innerHTML = html;
+    daftarNama.querySelectorAll('.ln-item').forEach(el => {
+      el.onclick = () => pilihNama(el.dataset.nama);
+      el.onkeydown = e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pilihNama(el.dataset.nama); }
+      };
+    });
+  }
+
+  function pilihNama(nama) {
+    const p = PEGAWAI.find(x => x.n === nama);
+    if (!p) return;
+    inputNama.value = p.n;
+    labelNama.innerHTML = p.n + '<small>' + p.j + ' &middot; ' + p.k + '</small>';
+    tombolNama.classList.add('terisi');
+    simpanTerakhir(p.n);
+    tutupLayar();
+    cekTombol();
+    mgOffset = 0;
+    muatMinggu();
+  }
+
+  /* ================= STATUS ABSEN SENIN–JUMAT ================= */
+  const panelMinggu = document.getElementById('panelMinggu');
+  const chipHari    = document.getElementById('chipHari');
+  const mgLabel     = document.getElementById('mgLabel');
+  const mgKet       = document.getElementById('mgKet');
+  const mgPrev      = document.getElementById('mgPrev');
+  const mgNext      = document.getElementById('mgNext');
+  const selStatus   = document.getElementById('statusAbsen');
+
+  const MINGGU_MAKS_MUNDUR = 4;   // paling jauh 4 minggu ke belakang
+  let mgOffset = 0;
+  let mgSedangMuat = false;
+
+  const IKON = {
+    'lengkap':      '✓✓',
+    'tanpa-pulang': '✓–',
+    'tanpa-datang': '–✓',
+    'kosong':       '✕',
+    'sepi':         '·',
+    'nanti':        ''
+  };
+  const ARTI = {
+    'lengkap':      'hadir lengkap',
+    'tanpa-pulang': 'datang, belum absen pulang',
+    'tanpa-datang': 'hanya absen pulang',
+    'kosong':       'tidak absen',
+    'sepi':         'libur atau hari sepi',
+    'nanti':        'belum tiba'
+  };
+
+  function muatMinggu() {
+    const nama = inputNama.value;
+    if (!nama) { panelMinggu.classList.remove('tampil'); return; }
+
+    panelMinggu.classList.add('tampil');
+    mgSedangMuat = true;
+    aturTombolNav();
+    chipHari.innerHTML = '<div class="mg-memuat" style="flex:1">Memuat status minggu ini…</div>';
+    mgKet.textContent = '';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        mgSedangMuat = false;
+        aturTombolNav();
+        if (!res || !res.ok) {
+          chipHari.innerHTML = '<div class="mg-memuat" style="flex:1">Status minggu belum bisa dimuat.</div>';
+          return;
+        }
+        gambarMinggu(res);
+      })
+      .withFailureHandler(() => {
+        mgSedangMuat = false;
+        aturTombolNav();
+        chipHari.innerHTML = '<div class="mg-memuat" style="flex:1">Status minggu belum bisa dimuat.</div>';
+      })
+      .statusMingguan(nama, mgOffset);
+  }
+
+  function gambarMinggu(res) {
+    mgLabel.textContent = res.label + (mgOffset === 0 ? ' (minggu ini)' : '');
+
+    chipHari.innerHTML = res.hari.map(d => {
+      const jam = [];
+      if (d.jamDatang) jam.push('datang ' + d.jamDatang);
+      if (d.jamPulang) jam.push('pulang ' + d.jamPulang);
+      const judul = d.hari + ' ' + d.tgl + ' — ' + ARTI[d.status] +
+                    (jam.length ? ' (' + jam.join(', ') + ')' : '');
+      return '<div class="ch ' + d.status + (d.hariIni ? ' ini' : '') + '"' +
+             ' role="listitem" title="' + judul + '" aria-label="' + judul + '">' +
+               '<span class="h">' + d.hari + '</span>' +
+               '<span class="t">' + d.tgl + '</span>' +
+               '<span class="ikon" aria-hidden="true">' + IKON[d.status] + '</span>' +
+             '</div>';
+    }).join('');
+
+    // Ringkasan + arahkan pilihan status hari ini
+    const lewat  = res.hari.filter(d => d.status === 'kosong');
+    const belumP = res.hari.filter(d => d.status === 'tanpa-pulang');
+    const ini    = res.hari.find(d => d.hariIni);
+
+    let ket = '';
+    if (lewat.length) {
+      ket = '<b>Belum absen pada ' + lewat.length + ' hari:</b> ' +
+            lewat.map(d => d.hari + ' ' + d.tgl).join(', ') + '. ';
+    }
+    if (belumP.length) {
+      ket += 'Belum absen pulang: ' + belumP.map(d => d.hari + ' ' + d.tgl).join(', ') + '.';
+    }
+    if (!ket) {
+      ket = mgOffset === 0
+        ? 'Absensi minggu ini aman sejauh ini. ✓✓ lengkap · ✓– belum pulang · ✕ tidak absen · · libur'
+        : 'Tidak ada hari yang terlewat pada minggu ini.';
+    }
+    mgKet.innerHTML = ket;
+
+    // Siapkan pilihan status sesuai keadaan hari ini (hanya untuk minggu berjalan)
+    if (mgOffset === 0 && ini) {
+      if (ini.status === 'tanpa-pulang')      selStatus.value = 'Hadir Pulang';
+      else if (ini.status === 'kosong' ||
+               ini.status === 'sepi')          selStatus.value = 'Hadir Datang';
+    }
+  }
+
+  function aturTombolNav() {
+    mgPrev.disabled = mgSedangMuat || (mgOffset <= -MINGGU_MAKS_MUNDUR);
+    mgNext.disabled = mgSedangMuat || (mgOffset >= 0);
+  }
+
+  mgPrev.addEventListener('click', () => {
+    if (mgOffset <= -MINGGU_MAKS_MUNDUR) return;
+    mgOffset--; muatMinggu();
+  });
+  mgNext.addEventListener('click', () => {
+    if (mgOffset >= 0) return;
+    mgOffset++; muatMinggu();
+  });
+
+  function bukaLayar() {
+    layarNama.classList.add('buka');
+    tombolNama.setAttribute('aria-expanded', 'true');
+    cariNama.value = '';
+    gambarDaftar('');
+    setTimeout(() => { try { cariNama.focus(); } catch (e) {} }, 120);
+  }
+  function tutupLayar() {
+    layarNama.classList.remove('buka');
+    tombolNama.setAttribute('aria-expanded', 'false');
+    try { cariNama.blur(); } catch (e) {}
+  }
+
+  tombolNama.addEventListener('click', bukaLayar);
+  document.getElementById('tutupNama').addEventListener('click', tutupLayar);
+  cariNama.addEventListener('input', () => gambarDaftar(cariNama.value));
+  cariNama.addEventListener('keyup', e => {
+    if (e.key === 'Escape') tutupLayar();
+    if (e.key === 'Enter') {
+      const satu = daftarNama.querySelectorAll('.ln-item');
+      if (satu.length === 1) pilihNama(satu[0].dataset.nama);
+    }
+  });
+
+  (function muatTerakhir() {
+    const t = ambilTerakhir();
+    if (t && PEGAWAI.some(p => p.n === t)) pilihNama(t);
+  })();
+
+  /* ================= GPS ================= */
+  function ambilLokasi() {
+    if (!navigator.geolocation) {
+      setStatus(statGps, 'err', '📍 GPS N/A');
+      tampilPesan("Perangkat tidak mendukung GPS.", "gagal");
+      return;
+    }
+    setStatus(statGps, 'wait', '📍 Mencari...');
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        setStatus(statGps, 'ok', '📍 GPS Siap');
+        cekTombol();
+      },
+      err => {
+        setStatus(statGps, 'err', '📍 GPS Gagal');
+        tampilPesan("Lokasi tidak terdeteksi. Aktifkan GPS lalu tap kotak GPS untuk mencari ulang.", "gagal");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  }
+  ambilLokasi();
+  statGps.style.cursor = 'pointer';
+  statGps.onclick = ambilLokasi;
+
+  /* ================= KAMERA ================= */
+  btnKamera.addEventListener('click', () => {
+    waktuJepret = Date.now();
+    inputFoto.value = '';
+    inputFoto.click();
+  });
+
+  inputFoto.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const umurFile = (Date.now() - file.lastModified) / 1000;
+    if (umurFile > BATAS_DETIK) {
+      const menit = Math.round(umurFile / 60);
+      tampilPesan("❌ Foto ditolak! Ini foto lama (" + menit + " menit yang lalu). Harap memotret langsung, bukan memilih dari galeri.", "gagal");
+      resetFoto();
+      return;
+    }
+    if (waktuJepret && file.lastModified < waktuJepret - 5000) {
+      tampilPesan("❌ Foto ditolak! Foto harus diambil langsung saat ini juga.", "gagal");
+      resetFoto();
+      return;
+    }
+    waktuFoto = file.lastModified;
+
+    tampilPesan("Memproses foto...", "proses");
+    const reader = new FileReader();
+
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxLebar = 640;
+        const skala = Math.min(1, maxLebar / img.width);
+        canvas.width  = Math.round(img.width * skala);
+        canvas.height = Math.round(img.height * skala);
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        imageData = canvas.toDataURL('image/jpeg', 0.6);
+
+        previewFoto.src = imageData;
+        previewFoto.style.display = 'block';
+        placeholder.style.display = 'none';
+        fotoBox.classList.add('terisi');
+
+        setStatus(statFoto, 'ok', '📷 Foto Siap');
+        btnKamera.innerHTML = "🔄 Ambil Ulang Foto";
+        pesan.className = ""; pesan.style.display = 'none';
+        cekTombol();
+      };
+      img.onerror = () => tampilPesan("File foto tidak bisa dibaca. Coba ambil ulang.", "gagal");
+      img.src = ev.target.result;
+    };
+
+    reader.onerror = () => tampilPesan("Gagal membaca file foto.", "gagal");
+    reader.readAsDataURL(file);
+  });
+
+  /* ================= HELPER ================= */
+  function setStatus(el, tipe, teks) {
+    el.className = 'status-item ' + tipe;
+    el.innerHTML = teks;
+  }
+
+  function tampilPesan(teks, tipe) {
+    pesan.className = "";
+    pesan.classList.add(tipe);
+    pesan.innerHTML = teks;
+  }
+
+  function cekTombol() {
+    btnAbsen.disabled = !(imageData && userLat && userLng && inputNama.value);
+  }
+
+  function resetFoto() {
+    imageData = null;
+    waktuFoto = null;
+    inputFoto.value = '';
+    previewFoto.style.display = 'none';
+    previewFoto.src = '';
+    placeholder.style.display = 'block';
+    fotoBox.classList.remove('terisi');
+    setStatus(statFoto, 'err', '📷 Ditolak');
+    btnKamera.innerHTML = "📷 Buka Kamera";
+    cekTombol();
+  }
+
+  /* ================= KIRIM ABSEN ================= */
+  const MAKS_PERCOBAAN = 3;
+
+  btnAbsen.addEventListener('click', () => {
+    const nama = inputNama.value;
+    const statusAbs = document.getElementById('statusAbsen').value;
+
+    if (!nama)      { tampilPesan("Nama belum dipilih!", "gagal"); bukaLayar(); return; }
+    if (!imageData) { tampilPesan("Foto belum diambil!", "gagal"); return; }
+    if (!userLat || !userLng) { tampilPesan("GPS belum siap. Tap kotak GPS untuk mencari ulang.", "gagal"); return; }
+
+    btnAbsen.disabled = true;
+    btnKamera.disabled = true;
+    kirim({ nama: nama, status: statusAbs, lat: userLat, lng: userLng,
+            image: imageData, waktuFoto: waktuFoto, waktuKirim: Date.now() }, 1);
+  });
+
+  function kirim(muatan, percobaan) {
+    btnAbsen.innerHTML = "⏳ Mengirim...";
+    tampilPesan(percobaan === 1
+      ? "Menganalisis lokasi &amp; menyimpan data..."
+      : "Server sedang antre, mencoba lagi (" + percobaan + "/" + MAKS_PERCOBAAN + ")...", "proses");
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          tampilPesan(res.message, "sukses");
+          btnAbsen.innerHTML = "✅ Berhasil";
+          muatMinggu();          // segarkan chip Senin–Jumat
+          return;
+        }
+        if (res.message && res.message.indexOf('sibuk') !== -1 && percobaan < MAKS_PERCOBAAN) {
+          const jeda = percobaan * 5000 + Math.random() * 3000;
+          tampilPesan("Server sedang sibuk. Mencoba otomatis dalam " +
+                      Math.round(jeda/1000) + " detik...", "proses");
+          setTimeout(() => kirim(muatan, percobaan + 1), jeda);
+          return;
+        }
+        gagal(res.message);
+      })
+      .withFailureHandler(err => {
+        const pesanErr = String(err && err.message ? err.message : err);
+        if (percobaan < MAKS_PERCOBAAN) {
+          const jeda = percobaan * 5000 + Math.random() * 3000;
+          tampilPesan("Koneksi bermasalah. Mencoba otomatis dalam " +
+                      Math.round(jeda/1000) + " detik...", "proses");
+          setTimeout(() => kirim(muatan, percobaan + 1), jeda);
+          return;
+        }
+        gagal("Gagal terhubung ke server: " + pesanErr);
+      })
+      .simpanAbsen(muatan);
+  }
+
+  function gagal(pesanTeks) {
+    tampilPesan((pesanTeks || "Terjadi kesalahan.") +
+                "<br><small>Absen Anda BELUM tersimpan. Silakan tekan Coba Lagi.</small>", "gagal");
+    btnAbsen.disabled = false;
+    btnKamera.disabled = false;
+    btnAbsen.innerHTML = "📤 Coba Lagi";
+  }
+</script>
+
+</body>
+</html>
